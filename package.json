@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Nick1G/Map-API-Project/issues"
   },
-  "homepage": "https://github.com/Nick1G/Map-API-Project#readme"
+  "homepage": "https://github.com/Nick1G/Map-API-Project#readme",
+  "devDependencies": {
+    "gulp": "^4.0.2"
+  }
 }
