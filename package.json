@@ -2,7 +2,7 @@
   "name": "map-api-project",
   "version": "1.0.0",
   "description": "Practicing Map API",
-  "main": "index.html",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/Nick1G/Map-API-Project#readme",
   "devDependencies": {
-    "gulp": "^4.0.2"
+    "gulp": "^4.0.2",
+    "mapbox-gl": "^2.6.1",
+    "requirejs": "^2.3.6"
   }
 }
