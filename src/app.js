@@ -21,3 +21,8 @@ if (!navigator.geolocation) {
     const startingMarker = new mapboxgl.Marker().setLngLat([long, lat]).addTo(map);
   });
 }
+
+const searchEl = document.querySelector('form');
+searchEl.addEventListener('submit', e => {
+  e.preventDefault();
+});
