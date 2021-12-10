@@ -3,27 +3,26 @@ const APICall = 'https://api.mapbox.com/';
 
 let lat;
 let long;
+let changeMap;
 
-if (!navigator.geolocation) {
-  console.log('error');
-} else {
-  navigator.geolocation.getCurrentPosition(location => {
-    lat = location.coords.latitude;
-    long = location.coords.longitude;
-    mapboxgl.accessToken = `${APIKey}`;
-    
-    const map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v11',
-    center: [long, lat],
-    zoom: 12
-    });
-
-    const startingMarker = new mapboxgl.Marker().setLngLat([long, lat]).addTo(map);
-
-    getCurrentLocation(long, lat);
+navigator.geolocation.getCurrentPosition(location => {
+  lat = location.coords.latitude;
+  long = location.coords.longitude;
+  mapboxgl.accessToken = `${APIKey}`;
+  
+  const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/mapbox/streets-v11',
+  center: [long, lat],
+  zoom: 12
   });
-}
+
+  const startingMarker = new mapboxgl.Marker().setLngLat([long, lat]).addTo(map);
+
+  getCurrentLocation(long, lat);
+
+  return changeMap = map;
+});
 
 function getDistance(lat1, lat2, long1, long2) {
   const earthRadius = 6371;
@@ -53,10 +52,10 @@ function getCurrentLocation(longitude, latitude) {
 function getPointsOfInterest(currentLocation, proximityLong, proximityLat) {
   return fetch(`${APICall}geocoding/v5/mapbox.places/${currentLocation.toLowerCase()}.json?types=poi&limit=10&proximity=${proximityLong},${proximityLat}&access_token=${APIKey}`)
     .then(response => response.json())
-    .then(data => renderPOI(data.features, proximityLong, proximityLat));
+    .then(data => renderPOI(data.features));
 }
 
-function renderPOI(features, locationLong, locationLat) {
+function renderPOI(features) {
   const POIObjects = [];
 
   features.forEach(POI => {
@@ -65,17 +64,15 @@ function renderPOI(features, locationLong, locationLat) {
     thisPlace.address = POI.properties.address;
     thisPlace.longitude = POI.geometry.coordinates[0];
     thisPlace.latitude = POI.geometry.coordinates[1];
-    thisPlace.distance = getDistance(locationLat, POI.center[1], locationLong, POI.center[0]);
-
+    thisPlace.distance = getDistance(lat, POI.center[1], long, POI.center[0]);
     POIObjects.push(thisPlace);
   });
 
   POIObjects.sort((a, b) => a.distance - b.distance);
-  console.log(POIObjects);
   document.querySelectorAll('.poi').forEach(pointHTML => pointHTML.remove());
 
   POIObjects.forEach(poi => {
-    document.querySelector('.points-of-interest').insertAdjacentHTML('beforeend', `
+    pointsOfInterest.insertAdjacentHTML('beforeend', `
       <li class="poi" data-long="${poi.longitude}" data-lat="${poi.latitude}">
       <ul>
         <li class="name">${poi.name}
@@ -89,4 +86,19 @@ function renderPOI(features, locationLong, locationLat) {
 const searchEl = document.querySelector('form');
 searchEl.addEventListener('submit', e => {
   e.preventDefault();
+  if (searchEl.firstElementChild.value !== '') {
+    return fetch(`${APICall}geocoding/v5/mapbox.places/${searchEl.firstElementChild.value}.json?types=place&limit=1&access_token=${APIKey}`)
+      .then(response => response.json())
+      .then(data => getPointsOfInterest(data.features[0].text, data.features[0].center[0], data.features[0].center[1]));
+  }
+});
+
+const pointsOfInterest = document.querySelector('.points-of-interest');
+pointsOfInterest.addEventListener('click', e => {
+  if (e.target.className === 'poi') {
+    const targetLat = e.target.getAttribute('data-lat');
+    const targetLong = e.target.getAttribute('data-long');
+    let newMarker = new mapboxgl.Marker().setLngLat([targetLong,targetLat]).addTo(changeMap);
+    changeMap.flyTo({center: [targetLong,targetLat]});
+  }
 });
